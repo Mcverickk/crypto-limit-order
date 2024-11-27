@@ -13,7 +13,7 @@ const getCache = (key) => {
     return cache.get(key);
 }
 
-const getRequest = async (url) => {
+const getRequest = async ({url}) => {
     try {
         console.log(`Making GET request to: ${url}`);
         const response = await axios.get(url);
@@ -23,4 +23,14 @@ const getRequest = async (url) => {
     }
 }
 
-export { setCache, getCache, getRequest };
+const postRequest = async ({url, reqBody}) => {
+    try {
+        console.log(`Making POST request to: ${url}`);
+        const response = await axios.post(url, reqBody);
+        return { response: response.data };
+    } catch (error) {
+        return { error };
+    }
+}
+
+export { setCache, getCache, getRequest, postRequest };

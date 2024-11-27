@@ -1,7 +1,5 @@
 import { getCache, getRequest, setCache } from "./utils.js";
-import dotenv from 'dotenv';
-
-dotenv.config();
+import Config from '../config/index.js';
 
 const fetchOrders = async () => {
     let orders = getCache("orders");
@@ -18,13 +16,13 @@ const fetchOrders = async () => {
 }
 
 const fetchActiveOrdersFromHasura = async () => {
-    const { response, error } = await getRequest(process.env.HASURA_ACTIVE_ORDERS_URL);
+    const { response, error } = await getRequest({url: Config.HASURA_ACTIVE_ORDERS_URL});
     if(error || !response){
         console.error("Error fetching active orders from Hasura", error);
         throw new Error("Error fetching active orders from Hasura");
     }
 
-    setCache("orders", response?.LimitOrder, 30);
+    setCache("orders", response?.LimitOrder, Config.ORDER_CACHE_TIME_IN_SECONDS);
     return response?.LimitOrder;
 }
 
