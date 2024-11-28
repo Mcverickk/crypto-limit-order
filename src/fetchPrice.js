@@ -1,5 +1,5 @@
-import Config from "../config/index.js";
-import { getRequest } from "./utils.js";
+const Config = require("../config/index.js");
+const { getRequest } = require("./utils.js");
 
 
 const getTradingPrice = async ({fromToken, toToken, networkId, priceType= "high"}) => {

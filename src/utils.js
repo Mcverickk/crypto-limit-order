@@ -1,5 +1,5 @@
-import axios from 'axios';
-import NodeCache from 'node-cache';
+const axios = require('axios');
+const NodeCache = require('node-cache');
 
 const cache = new NodeCache();
 

@@ -1,6 +1,7 @@
-import express from 'express';
-import Config from '../config/index.js';
-import { getRequest, postRequest } from '../src/utils.js';
+const express = require('express');
+const Config = require('../config');
+const { getRequest, postRequest } = require('../src/utils.js');
+
 const router = express.Router();
 
 router.post('/create', async (req, res) => {

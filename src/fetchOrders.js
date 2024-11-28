@@ -1,5 +1,5 @@
-import { getCache, getRequest, setCache } from "./utils.js";
-import Config from '../config/index.js';
+const { getCache, getRequest, setCache } = require("./utils.js");
+const Config = require('../config/index.js');
 
 const fetchOrders = async () => {
     let orders = getCache("orders");
