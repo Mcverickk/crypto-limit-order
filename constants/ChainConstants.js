@@ -6,8 +6,8 @@ const CHAIN_IDS = {
     "base" : 8453
 }
 
-const getChainId = (chainName) => {
-    return CHAIN_IDS[chainName.toLowerCase()];
+const getChainId = (chain) => {
+    return CHAIN_IDS[chain.toLowerCase()];
 }
 
 const CMC_NETWORK_DETAILS = [
@@ -38,15 +38,15 @@ const CMC_NETWORK_DETAILS = [
   },
 ];
 
-const getCoinMarketCapChainId = (chainName) => {
-    return CMC_NETWORK_DETAILS.find((network) => network.network_slug.toLowerCase() === chainName.toLowerCase()).id;
+const getCoinMarketCapNetworkId = (chain) => {
+    return CMC_NETWORK_DETAILS.find((network) => network.network_slug.toLowerCase() === chain.toLowerCase()).id;
 }
 
-const getCoinMarketCapNetworkSlug = (chainName) => {
-    return CMC_NETWORK_DETAILS.find((network) => network.network_slug.toLowerCase() === chainName.toLowerCase()).network_slug;
+const getCoinMarketCapNetworkSlug = (chain) => {
+    return CMC_NETWORK_DETAILS.find((network) => network.network_slug.toLowerCase() === chain.toLowerCase()).network_slug;
 }
 
 
 
 
-module.exports = { getChainId, getCoinMarketCapChainId, getCoinMarketCapNetworkSlug };
+module.exports = { getChainId, getCoinMarketCapNetworkId, getCoinMarketCapNetworkSlug };

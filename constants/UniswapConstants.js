@@ -12,12 +12,12 @@ const UNISWAP_V2_FACTORY_ADDRESS = {
     'arbitrum': '0xf1D7CC64Fb4452F05c498126312eBE29f30Fbcf9',
 }
 
-const UniswapFactoryAddress = ({chainName, version}) => {
+const UniswapFactoryAddress = ({chain, version}) => {
     switch (version.toLowerCase()) {
         case 'v3':
-            return UNISWAP_V3_FACTORY_ADDRESS[chainName.toLowerCase()];
+            return UNISWAP_V3_FACTORY_ADDRESS[chain.toLowerCase()];
         case 'v2':
-            return UNISWAP_V2_FACTORY_ADDRESS[chainName.toLowerCase()];
+            return UNISWAP_V2_FACTORY_ADDRESS[chain.toLowerCase()];
         default:
             console.error("Invalid Uniswap version", version);
             return null;
