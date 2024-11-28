@@ -1,7 +1,7 @@
-import express from 'express';
-import healthz from './routes/healthz.js';
-import limitOrders from './routes/limitOrders.js';
-import Config from './config/index.js';
+const express = require('express');
+const healthz = require('./routes/healthz.js');
+const limitOrders = require('./routes/limitOrders.js');
+const Config = require('./config/index.js');
 
 const app = express();
 

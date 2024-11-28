@@ -26,4 +26,4 @@ const fetchActiveOrdersFromHasura = async () => {
     return response?.LimitOrder;
 }
 
-export default fetchOrders;
+module.exports = fetchOrders;

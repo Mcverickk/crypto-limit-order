@@ -33,4 +33,4 @@ const postRequest = async ({url, reqBody}) => {
     }
 }
 
-export { setCache, getCache, getRequest, postRequest };
+module.exports = { setCache, getCache, getRequest, postRequest };

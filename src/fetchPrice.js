@@ -61,4 +61,4 @@ const getCMCPriceUrl = ({fromToken, toToken, networkId}) => {
     return `${Config.CMC_DEX_PRICE_DATA_URL}?network_id=${networkId}${fromTokenStr}${toTokenStr}`;
 }
 
-export default getTradingPrice;
+module.exports = getTradingPrice;
