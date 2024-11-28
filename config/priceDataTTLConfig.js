@@ -8,17 +8,17 @@ const getPriceDataTTL = ({ uniqueId, priceData, triggerPrice, id}) => {
     let ttl;
 
     if(absPercentChangeNeeded < 1){
-        ttl = 5;
+        ttl = 15;
     } else if(absPercentChangeNeeded < 2){
-        ttl = 10;
+        ttl = 30;
     } else if(absPercentChangeNeeded < 3){
-        ttl = 25;
+        ttl = 90;
     } else  if(absPercentChangeNeeded < 5){
-        ttl = 120;
-    } else if (absPercentChangeNeeded < 10){
         ttl = 300;
-    } else {
+    } else if (absPercentChangeNeeded < 10){
         ttl = 600;
+    } else {
+        ttl = 1800;
     }
 
     return ttl;
