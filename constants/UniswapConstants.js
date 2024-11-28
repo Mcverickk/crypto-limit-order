@@ -1,3 +1,5 @@
+const { log } = require("../src/utils");
+
 const UNISWAP_V3_FACTORY_ADDRESS = {
     'base' : '0x33128a8fC17869897dcE68Ed026d694621f6FDfD',
     'ethereum': '0x1F98431c8aD98523631AE4a59f267346ea31F984',
@@ -12,14 +14,14 @@ const UNISWAP_V2_FACTORY_ADDRESS = {
     'arbitrum': '0xf1D7CC64Fb4452F05c498126312eBE29f30Fbcf9',
 }
 
-const UniswapFactoryAddress = ({chain, version}) => {
+const UniswapFactoryAddress = ({uniqueId, chain, version}) => {
     switch (version.toLowerCase()) {
         case 'v3':
             return UNISWAP_V3_FACTORY_ADDRESS[chain.toLowerCase()];
         case 'v2':
             return UNISWAP_V2_FACTORY_ADDRESS[chain.toLowerCase()];
         default:
-            console.error("Invalid Uniswap version", version);
+            log({ uniqueId, message: `Invalid Uniswap version ${version}` });
             return null;
     }
 }
