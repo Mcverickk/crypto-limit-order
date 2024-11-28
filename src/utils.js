@@ -13,10 +13,10 @@ const getCache = (key) => {
     return cache.get(key);
 }
 
-const getRequest = async ({url}) => {
+const getRequest = async ({url, headers}) => {
     try {
         console.log(`Making GET request to: ${url}`);
-        const response = await axios.get(url);
+        const response = await axios.get(url, { headers });
         return { response: response.data };       
     } catch (error) {
         return { error };
