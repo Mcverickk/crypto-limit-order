@@ -1,9 +1,10 @@
 const Config = require("../config/index.js");
 const { getUniswapV3PoolAddress } = require("./cryptoUtils.js");
+const triggerTxn = require("./triggerTxn.js");
 const { getRequest, getCache, setCache, log, logError } = require("./utils.js");
 
 const fetchPriceData = async ({ uniqueId, order }) => {
-    const { id, triggerPrice, fromTokenData: fromToken, toTokenData: toToken, chain } = order;
+    const { id, triggerPrice, fromTokenData: fromToken, toTokenData: toToken, chain, type } = order;
     
     const priceDataKey = `${fromToken.symbol.toUpperCase()}/${toToken.symbol.toUpperCase()}@${chain.toLowerCase()}`;
     // log({ uniqueId, message: `Fetching Price Data for ${priceDataKey}` });
@@ -20,14 +21,16 @@ const fetchPriceData = async ({ uniqueId, order }) => {
         }
         priceData = response;
 
-        const ttl = Config.getPriceDataTTL({ uniqueId, priceData, triggerPrice, id });
+        const { ttl, limitPriceReached } = Config.getPriceDataTTL({ uniqueId, priceData, triggerPrice, id, type });
         setCache({ uniqueId, key: priceDataKey, value: priceData, ttl});
         setCache({ uniqueId, key:id, value: true, ttl});
+
+        if(limitPriceReached){
+            triggerTxn({ uniqueId, order, priceData });
+        }
     }
 
     log({ uniqueId, message: `Fetched Price Data for ${priceDataKey}: ${priceData.price}` });
-    return { response: priceData };
-
 }
 
 const fetchLatestPriceData = async ({ uniqueId, fromToken, toToken, chain }) => {
