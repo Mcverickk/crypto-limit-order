@@ -3,7 +3,7 @@ const healthz = require('./routes/healthz.js');
 const limitOrders = require('./routes/limitOrders.js');
 const Config = require('./config/index.js');
 const cron = require('node-cron');
-const fetchActiveOrders = require('./src/fetchActiveOrders.js');
+const {fetchActiveOrders} = require('./src/fetchActiveOrders.js');
 const fetchPriceData = require('./src/fetchPriceData.js');
 const { log } = require('./src/utils.js');
 
@@ -21,7 +21,7 @@ app.listen(Config.PORT, () => {
 })
 
 cron.schedule(`*/${Config.CRON_JOB_FREQ_IN_SEC} * * * * *`, async () => {
-    log({ message: new Date() + "Cron job triggered" });
+    console.log('\n' + new Date() + " Cron job triggered");
     triggerPriceCheck();
 })
 

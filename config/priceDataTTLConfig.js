@@ -12,7 +12,7 @@ const getPriceDataTTL = ({ uniqueId, priceData, triggerPrice, id, type}) => {
     ) {
         limitPriceReached = true;
     } else {
-        log({ uniqueId, message: `Percent Change Needed for ${priceData.pairName} is ${percentChangeNeeded}%` });
+        log({ uniqueId, message: `${priceData.pairName}@${priceData.chain}: ${percentChangeNeeded}% change needed` });
     }
 
     const absPercentChangeNeeded = Math.abs(percentChangeNeeded);
@@ -20,22 +20,22 @@ const getPriceDataTTL = ({ uniqueId, priceData, triggerPrice, id, type}) => {
 
     switch (true) {
         case (absPercentChangeNeeded < 1):
-            ttl = 15;
+            ttl = 60;
             break;
         case (absPercentChangeNeeded < 2):
-            ttl = 30;
+            ttl = 120;
             break;
         case (absPercentChangeNeeded < 3):
-            ttl = 90;
-            break;
-        case (absPercentChangeNeeded < 5):
             ttl = 300;
             break;
+        case (absPercentChangeNeeded < 5):
+            ttl = 900;
+            break;
         case (absPercentChangeNeeded < 10):
-            ttl = 600;
+            ttl = 3600;
             break;
         default:
-            ttl = 1800;
+            ttl = 7200;
             break;
     }
 

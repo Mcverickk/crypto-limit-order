@@ -15,11 +15,12 @@ const fetchPriceData = async ({ uniqueId, order }) => {
     if(!priceData || !isPriceDataLatest){
         // log({ uniqueId, message: `Cache Miss for ${priceDataKey}` });
 
-        const { response, error } = await fetchLatestPriceData({ uniqueId, fromToken, toToken, chain });
+        const { response, error } = await fetchLatestPriceData({ uniqueId, fromToken, toToken, chain, priceDataKey });
         if(error){
             return { error };
         }
         priceData = response;
+        log({ uniqueId, message: `${priceDataKey}: ${priceData.price} price fetched` });
 
         const { ttl, limitPriceReached } = Config.getPriceDataTTL({ uniqueId, priceData, triggerPrice, id, type });
         setCache({ uniqueId, key: priceDataKey, value: priceData, ttl});
@@ -28,12 +29,12 @@ const fetchPriceData = async ({ uniqueId, order }) => {
         if(limitPriceReached){
             triggerTxn({ uniqueId, order, priceData });
         }
+    } else{
+        log({ uniqueId, message: `${priceDataKey}: ${priceData.price} price fetched from cache` });
     }
-
-    log({ uniqueId, message: `Fetched Price Data for ${priceDataKey}: ${priceData.price}` });
 }
 
-const fetchLatestPriceData = async ({ uniqueId, fromToken, toToken, chain }) => {
+const fetchLatestPriceData = async ({ uniqueId, fromToken, toToken, chain, priceDataKey }) => {
 
     // log({uniqueId, message: "Fetching uniswap pool address"});
     const poolAddress = getUniswapV3PoolAddress({
@@ -44,7 +45,7 @@ const fetchLatestPriceData = async ({ uniqueId, fromToken, toToken, chain }) => 
         fee: 3000
     });
 
-    const { response: poolDataResponse, error: poolDataError } = await fetchPoolDataFromCMC({uniqueId, poolAddress, chain});
+    const { response: poolDataResponse, error: poolDataError } = await fetchPoolDataFromCMC({uniqueId, poolAddress, chain, priceDataKey});
 
     if(poolDataError){
         return { error: poolDataError };
@@ -55,7 +56,7 @@ const fetchLatestPriceData = async ({ uniqueId, fromToken, toToken, chain }) => 
     return { response: priceData };
 }
 
-const fetchPoolDataFromCMC = async ({uniqueId, poolAddress, chain}) => {
+const fetchPoolDataFromCMC = async ({uniqueId, poolAddress, chain, priceDataKey}) => {
     const networkId = Config.getCoinMarketCapNetworkId(chain);
 
     const url = `${Config.CMC_DEX_POOL_DATA_URL}?network_id=${networkId}&contract_address=${poolAddress}`;
@@ -74,15 +75,15 @@ const fetchPoolDataFromCMC = async ({uniqueId, poolAddress, chain}) => {
     const data = normalPairResponse?.data;
 
     if(data?.length === 0){
-        log({uniqueId, message: `No data found for the pool ${poolAddress} in CMC on chain ${chain}`});
-        return { error: "No data found for the token pair in CMC" };
+        log({uniqueId, message: `${priceDataKey}: No data found in CMC`});
+        return { error: `${priceDataKey}: No data found in CMC` };
     }
 
     const response = {
-        "pairName" : `${data[0].base_asset_symbol}/${data[0].quote_asset_symbol}`,
+        "pairName" : `${data[0].base_asset_symbol.toUpperCase()}/${data[0].quote_asset_symbol.toUpperCase()}`,
         "fromToken" : data[0].base_asset_contract_address,
         "toToken" : data[0].quote_asset_contract_address,
-        "chain" : chain,
+        "chain" : chain.toLowerCase(),
         "price" : data[0].quote[0].price_by_quote_asset,
         "priceInUSD" : data[0].quote[0].price,
         "lastUpdated" : data[0].quote[0].last_updated,
@@ -101,6 +102,7 @@ const formatPriceData = ({poolDataResponse, fromTokenAddress, toTokenAddress}) =
         poolDataResponse.priceInUSD = poolDataResponse.price * poolDataResponse.priceInUSD;
         poolDataResponse.fromToken = fromTokenAddress;
         poolDataResponse.toToken = toTokenAddress;
+        poolDataResponse.pairName = poolDataResponse.pairName.split("/").reverse().join("/");
     }
     return poolDataResponse;
 }

@@ -1,6 +1,7 @@
 const express = require('express');
 const Config = require('../config');
 const { getRequest, postRequest, log, logError } = require('../src/utils.js');
+const { fetchActiveOrdersFromHasura } = require('../src/fetchActiveOrders.js');
 
 const router = express.Router();
 
@@ -17,6 +18,7 @@ router.post('/create', async (req, res) => {
         logError({ uniqueId, message: "Error creating order", error });
         return res.status(500).send('Internal server error');
     }
+    await fetchActiveOrdersFromHasura({ uniqueId });
     return res.status(200).send(response.insert_LimitOrder_one);
 })
 

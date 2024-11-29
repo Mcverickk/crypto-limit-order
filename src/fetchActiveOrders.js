@@ -8,12 +8,13 @@ const fetchActiveOrders = async ({ uniqueId }) => {
         // log({ uniqueId, message: 'CACHE MISS: Active orders' });
         try{
             orders = await fetchActiveOrdersFromHasura({ uniqueId });
-            setCache({uniqueId, key: "orders", value: orders, ttl: Config.ORDER_CACHE_TIME_IN_SECONDS});
+            log({ uniqueId, message: `Fetched ${orders.length} active orders` });
         } catch (error){
             return { error };
         }
+    } else {
+        log({ uniqueId, message: `Fetched ${orders.length} active orders from cache` });
     }
-    log({ uniqueId, message: `Fetched ${orders.length} active orders` });
     return { response: orders };
 }
 
@@ -23,7 +24,8 @@ const fetchActiveOrdersFromHasura = async ({ uniqueId }) => {
         logError({ uniqueId, message: "Error fetching active orders from Hasura", error });
         throw new Error("Error fetching active orders from Hasura");
     }
+    setCache({uniqueId, key: "orders", value: response?.LimitOrder, ttl: Config.ORDER_CACHE_TIME_IN_SECONDS});
     return response?.LimitOrder;
 }
 
-module.exports = fetchActiveOrders;
+module.exports = { fetchActiveOrders, fetchActiveOrdersFromHasura};
