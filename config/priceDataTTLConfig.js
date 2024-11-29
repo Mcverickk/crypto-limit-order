@@ -3,16 +3,17 @@ const { log } = require("../src/utils");
 const getPriceDataTTL = ({ uniqueId, priceData, triggerPrice, id, type}) => {
     const currentPrice = priceData.price;
     const percentChangeNeeded = (triggerPrice - currentPrice) * 100 / currentPrice;
-    // log({ uniqueId, message: `Percent Change Needed for ${id} is ${percentChangeNeeded}%` });
-
+    
     let limitPriceReached = false;
-
+    
     if (
-      (type.toLowerCase() === "buy" && percentChangeNeeded > 0) ||
-      (type.toLowerCase() === "sell" && percentChangeNeeded < 0)
+        (type.toLowerCase() === "buy" && percentChangeNeeded > 0) ||
+        (type.toLowerCase() === "sell" && percentChangeNeeded < 0)
     ) {
-      limitPriceReached = true;
-    } 
+        limitPriceReached = true;
+    } else {
+        log({ uniqueId, message: `Percent Change Needed for ${priceData.pairName} is ${percentChangeNeeded}%` });
+    }
 
     const absPercentChangeNeeded = Math.abs(percentChangeNeeded);
     let ttl;
