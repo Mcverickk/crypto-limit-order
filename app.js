@@ -32,7 +32,7 @@ cron.schedule(`*/${Config.CRON_JOB_FREQ_IN_SEC} * * * * *`, async () => {
 const triggerOrderCheck = async ({uniqueId}) => {
     const { orders } = await fetchActiveOrders({ uniqueId });
     const { expiredTTLPoolAddresses } = getPoolAddressesWithExpiredTTL({ uniqueId, orders });
-    await fetchPriceData({ uniqueId, poolAddresses: expiredTTLPoolAddresses });
+    await fetchPriceData({ uniqueId, poolAddresses: expiredTTLPoolAddresses, partner: 'coinMarketCap' });
     const { ordersToExecute } = checkOrderExecution({ uniqueId, orders });
     await executeOrders({ uniqueId, orders: ordersToExecute });
 }
