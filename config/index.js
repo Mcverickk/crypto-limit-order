@@ -1,4 +1,4 @@
-const { getChainId, getCoinMarketCapNetworkId } = require('../constants/ChainConstants');
+const { getChainId, getCoinMarketCapNetworkId, SUPPORTED_CHAINS, getChainFromCMCNetworkId } = require('../constants/ChainConstants');
 const { UniswapFactoryAddress } = require('../constants/UniswapConstants');
 const { getPriceDataTTL } = require('./priceDataTTLConfig');
 
@@ -18,5 +18,9 @@ module.exports = {
     getUniswapFactoryAddress: UniswapFactoryAddress,
     getChainId,
     getCoinMarketCapNetworkId,
-    getPriceDataTTL
+    getPriceDataTTL,
+    SUPPORTED_CHAINS,
+    getChainFromCMCNetworkId,
+    DEFAULT_PRICE_DATA_TTL: process.env.DEFAULT_PRICE_DATA_TTL,
+    STALE_PRICE_DATA_TIME_IN_MINUTES: process.env.STALE_PRICE_DATA_TIME_IN_MINUTES
 }

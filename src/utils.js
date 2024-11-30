@@ -1,31 +1,31 @@
 const axios = require('axios');
 const NodeCache = require('node-cache');
+const colors = require("colors");
 
 const cache = new NodeCache();
 
-const log = ({uniqueId, message, data}) => {
+const log = ({uniqueId, message, data, colour = 'white'}) => {
     if(data) {
-        console.log(`[${uniqueId}] ${message}`, data);
+        console.log(`${uniqueId}| ${message}`[colour], data);
+
     } else {
-        console.log(`[${uniqueId}] ${message}`);
+        console.log(`${uniqueId}| ${message}`[colour]);
     }
 }
 
 const logError = ({uniqueId, message, error}) => {
     if(error){
-        console.error(`[${uniqueId}] ${message}`, error);
+        console.error(`${uniqueId}| ${message}`.red, error);
     } else {
-        console.error(`[${uniqueId}] ${message}`);
+        console.error(`${uniqueId}| ${message}`.red);
     }
 }
 
 const setCache = ({ uniqueId, key, value, ttl}) => {
-    // log({uniqueId, message: `Setting cache for key: ${key} for ${ttl} seconds`});
     cache.set(key, value, ttl);
 }
 
 const getCache = ({ uniqueId, key}) => {
-    // log({uniqueId, message: `Getting cache for key: ${key}`});
     return cache.get(key);
 }
 

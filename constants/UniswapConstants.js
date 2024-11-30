@@ -21,7 +21,7 @@ const UniswapFactoryAddress = ({uniqueId, chain, version}) => {
         case 'v2':
             return UNISWAP_V2_FACTORY_ADDRESS[chain.toLowerCase()];
         default:
-            log({ uniqueId, message: `Invalid Uniswap version ${version}` });
+            log({ uniqueId, message: `Invalid Uniswap version ${version}`, colour: 'red' });
             return null;
     }
 }

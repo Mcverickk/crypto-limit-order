@@ -15,6 +15,7 @@
     "@uniswap/v2-sdk": "^4.7.0",
     "@uniswap/v3-sdk": "^3.19.0",
     "axios": "^1.7.8",
+    "colors": "^1.4.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "node-cache": "^5.1.2",

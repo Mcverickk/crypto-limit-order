@@ -1,111 +1,105 @@
 const Config = require("../config/index.js");
-const { getUniswapV3PoolAddress } = require("./cryptoUtils.js");
-const triggerTxn = require("./triggerTxn.js");
-const { getRequest, getCache, setCache, log, logError } = require("./utils.js");
+const { getRequest, setCache, log, logError } = require("./utils.js");
 
-const fetchPriceData = async ({ uniqueId, order }) => {
-    const { id, triggerPrice, fromTokenData: fromToken, toTokenData: toToken, chain, type } = order;
-    
-    const priceDataKey = `${fromToken.symbol.toUpperCase()}/${toToken.symbol.toUpperCase()}@${chain.toLowerCase()}`;
-    // log({ uniqueId, message: `Fetching Price Data for ${priceDataKey}` });
-
-    let priceData = getCache({ uniqueId, key: priceDataKey});
-    const isPriceDataLatest = getCache({ uniqueId, key: id});
-
-    if(!priceData || !isPriceDataLatest){
-        // log({ uniqueId, message: `Cache Miss for ${priceDataKey}` });
-
-        const { response, error } = await fetchLatestPriceData({ uniqueId, fromToken, toToken, chain, priceDataKey });
+const fetchPriceData = async ({ uniqueId, poolAddresses }) => {
+    if(poolAddresses.length === 0){
+        return;
+    }
+    const uniquePoolAddresses = [...new Set(poolAddresses)];
+    const supportedChains = Config.SUPPORTED_CHAINS;
+    const poolData = [];
+    for (const chain of supportedChains) {
+        const poolAddressesForChain = uniquePoolAddresses.filter(poolAddress => poolAddress.split(':')[1] === chain);
+        if(poolAddressesForChain.length === 0){
+            continue;
+        }
+        const poolAddressesWithoutChain = poolAddressesForChain.map(poolAddress => poolAddress.split(':')[0]);
+        const {response: priceData, error} = await fetchPoolDataFromCMC({uniqueId, chain, poolAddresses: poolAddressesWithoutChain});
         if(error){
-            return { error };
+            continue;
         }
-        priceData = response;
-        log({ uniqueId, message: `${priceDataKey}: ${priceData.price} price fetched` });
-
-        const { ttl, limitPriceReached } = Config.getPriceDataTTL({ uniqueId, priceData, triggerPrice, id, type });
-        setCache({ uniqueId, key: priceDataKey, value: priceData, ttl});
-        setCache({ uniqueId, key:id, value: true, ttl});
-
-        if(limitPriceReached){
-            triggerTxn({ uniqueId, order, priceData });
-        }
-    } else{
-        log({ uniqueId, message: `${priceDataKey}: ${priceData.price} price fetched from cache` });
+        poolData.push(...priceData);
     }
+    formatAndCachePriceData({uniqueId, poolData});
 }
 
-const fetchLatestPriceData = async ({ uniqueId, fromToken, toToken, chain, priceDataKey }) => {
-
-    // log({uniqueId, message: "Fetching uniswap pool address"});
-    const poolAddress = getUniswapV3PoolAddress({
-        uniqueId,
-        token0: fromToken,
-        token1: toToken,
-        chain,
-        fee: 3000
-    });
-
-    const { response: poolDataResponse, error: poolDataError } = await fetchPoolDataFromCMC({uniqueId, poolAddress, chain, priceDataKey});
-
-    if(poolDataError){
-        return { error: poolDataError };
-    }
-
-    const priceData = formatPriceData({ poolDataResponse, fromTokenAddress: fromToken.address, toTokenAddress: toToken.address });
-
-    return { response: priceData };
-}
-
-const fetchPoolDataFromCMC = async ({uniqueId, poolAddress, chain, priceDataKey}) => {
+const fetchPoolDataFromCMC = async ({uniqueId, chain, poolAddresses}) => {
     const networkId = Config.getCoinMarketCapNetworkId(chain);
 
-    const url = `${Config.CMC_DEX_POOL_DATA_URL}?network_id=${networkId}&contract_address=${poolAddress}`;
+    const url = `${Config.CMC_DEX_POOL_DATA_URL}?network_id=${networkId}&contract_address=${poolAddresses.join(",")}`;
 
     const headers = {
         'X-CMC_PRO_API_KEY': Config.X_CMC_PRO_API_KEY
     }
 
-    const { response: normalPairResponse, error } = await getRequest({uniqueId, url, headers});
+    const { response: poolDataResponse, error } = await getRequest({uniqueId, url, headers});
 
     if(error){
-        logError({uniqueId, message: "Error fetching price from CMC", error});
+        logError({uniqueId, message: `Error fetching price from CMC for [${chain}]`, error});
         return { error };
     }
 
-    const data = normalPairResponse?.data;
+    const data = poolDataResponse?.data;
 
     if(data?.length === 0){
-        log({uniqueId, message: `${priceDataKey}: No data found in CMC`});
-        return { error: `${priceDataKey}: No data found in CMC` };
+        logError({uniqueId, message: `No data fetched from CMC for [${chain}]`});
+        return { error: `No data fetched from CMC for [${chain}]` };
     }
 
-    const response = {
-        "pairName" : `${data[0].base_asset_symbol.toUpperCase()}/${data[0].quote_asset_symbol.toUpperCase()}`,
-        "fromToken" : data[0].base_asset_contract_address,
-        "toToken" : data[0].quote_asset_contract_address,
-        "chain" : chain.toLowerCase(),
-        "price" : data[0].quote[0].price_by_quote_asset,
-        "priceInUSD" : data[0].quote[0].price,
-        "lastUpdated" : data[0].quote[0].last_updated,
-        "dex" : data[0].dex_slug
-    }
-
-    return { response };
+    return { response: data };
 }
 
-const formatPriceData = ({poolDataResponse, fromTokenAddress, toTokenAddress}) => {
-    if (
-        poolDataResponse.fromToken.toLowerCase() === toTokenAddress.toLowerCase() &&
-        poolDataResponse.toToken.toLowerCase() === fromTokenAddress.toLowerCase()
-    ) {
-        poolDataResponse.price = 1 / poolDataResponse.price;
-        poolDataResponse.priceInUSD = poolDataResponse.price * poolDataResponse.priceInUSD;
-        poolDataResponse.fromToken = fromTokenAddress;
-        poolDataResponse.toToken = toTokenAddress;
-        poolDataResponse.pairName = poolDataResponse.pairName.split("/").reverse().join("/");
+const formatAndCachePriceData = ({uniqueId, poolData}) => {
+    for (const poolDataResponse of poolData) {
+        const {
+            contract_address, 
+            network_id, 
+            base_asset_symbol,
+            quote_asset_symbol,
+            base_asset_contract_address, 
+            quote_asset_contract_address,
+            quote,
+            dex_slug
+        } = poolDataResponse;
+
+        if(contract_address === undefined || network_id === undefined || base_asset_symbol === undefined || quote_asset_symbol === undefined || base_asset_contract_address === undefined || quote_asset_contract_address === undefined || quote === undefined || dex_slug === undefined){
+            log({uniqueId, message: `Missing data for pool:`, data: poolDataResponse, colour: 'red'});
+            continue;
+        }
+
+        const { price, price_by_quote_asset, last_updated } = quote[0];
+        const chain = Config.getChainFromCMCNetworkId(network_id);
+        const poolAddress = contract_address.toLowerCase();
+
+        const priceData = {
+            poolAddress,
+            chain,
+            quote : [{
+                name : [base_asset_symbol.toUpperCase(), quote_asset_symbol.toUpperCase()].join("/"),
+                fromToken : base_asset_contract_address,
+                toToken : quote_asset_contract_address,
+                price : price_by_quote_asset,
+                priceInUSD : price,
+            },
+            {
+                name : [quote_asset_symbol.toUpperCase(), base_asset_symbol.toUpperCase()].join("/"),
+                fromToken : quote_asset_contract_address,
+                toToken : base_asset_contract_address,
+                price : 1 / price_by_quote_asset,
+                priceInUSD : price / price_by_quote_asset,
+            }],
+            lastUpdated : last_updated,
+            dex : dex_slug
+        }
+
+        setCache({ 
+            uniqueId,
+            key: `${poolAddress}:${chain}`, 
+            value: priceData, 
+            ttl: Config.DEFAULT_PRICE_DATA_TTL
+        });
     }
-    return poolDataResponse;
+    log({uniqueId, message: `Fetched and cached ${poolData.length} price data`, colour: 'bgCyan'});
 }
 
-
-module.exports = fetchPriceData;
+module.exports = { fetchPriceData };

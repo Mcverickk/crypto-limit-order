@@ -1,45 +1,47 @@
 const { log } = require("../src/utils");
 
-const getPriceDataTTL = ({ uniqueId, priceData, triggerPrice, id, type}) => {
-    const currentPrice = priceData.price;
+const getPriceDataTTL = ({ uniqueId, name, currentPrice, triggerPrice, type, chain, staleDataTimeInMinutes}) => {
     const percentChangeNeeded = (triggerPrice - currentPrice) * 100 / currentPrice;
     
-    let limitPriceReached = false;
-    
     if (
-        (type.toLowerCase() === "buy" && percentChangeNeeded > 0) ||
-        (type.toLowerCase() === "sell" && percentChangeNeeded < 0)
+        (type.toUpperCase() === "BUY" && percentChangeNeeded > 0) ||
+        (type.toUpperCase() === "SELL" && percentChangeNeeded < 0)
     ) {
-        limitPriceReached = true;
+        log({ uniqueId, message: `${name}@${chain}: Limit price reached for trigger price ${triggerPrice}`, colour: 'bgBrightGreen' });
+        return { ttl: 0, limitPriceReached : true };
     } else {
-        log({ uniqueId, message: `${priceData.pairName}@${priceData.chain}: ${percentChangeNeeded}% change needed` });
+        if(staleDataTimeInMinutes > 5){
+            log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}% for ${type}`, colour: 'red' });
+        } else {
+            log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}% for ${type}` });
+        }
     }
-
-    const absPercentChangeNeeded = Math.abs(percentChangeNeeded);
+    
     let ttl;
+    const absPercentChangeNeeded = Math.abs(percentChangeNeeded);
 
     switch (true) {
         case (absPercentChangeNeeded < 1):
-            ttl = 60;
+            ttl = 45;
             break;
         case (absPercentChangeNeeded < 2):
-            ttl = 120;
+            ttl = 90;
             break;
         case (absPercentChangeNeeded < 3):
-            ttl = 300;
+            ttl = 180;
             break;
         case (absPercentChangeNeeded < 5):
-            ttl = 900;
+            ttl = 300;
             break;
         case (absPercentChangeNeeded < 10):
-            ttl = 3600;
+            ttl = 600;
             break;
         default:
-            ttl = 7200;
+            ttl = 1800;
             break;
     }
 
-    return { ttl, limitPriceReached };
+    return { ttl, limitPriceReached: false };
 }
 
 module.exports = { getPriceDataTTL };
