@@ -1,5 +1,4 @@
 const Config = require("../config");
-const { get } = require("../routes/healthz");
 const { getCache, setCache, log } = require("./utils");
 
 
@@ -11,6 +10,7 @@ const checkOrderExecution = ({ uniqueId, orders }) => {
         let ttl;
         const poolData = getCache({ uniqueId, key: `${poolAddress}:${chain}` });
         if( !poolData ) {
+            log({ uniqueId, message: `No cached pool data found for ${poolAddress}:${chain}`, colour: 'bgGrey' });
             ttl = 0;
         } else {
             const { dex, lastUpdated } = poolData;
@@ -22,7 +22,7 @@ const checkOrderExecution = ({ uniqueId, orders }) => {
     
             const { price, name } = priceData;
 
-            const staleDataTimeInMinutes = Math.floor((Date.now() - new Date(lastUpdated) / (1000 * 60)) % 60);
+            const staleDataTimeInMinutes = Math.floor((Date.now() - new Date(lastUpdated)) / (60000));
             
             const { ttl: priceDataTTL, limitPriceReached } = Config.getPriceDataTTL({ uniqueId, name, currentPrice: price, triggerPrice, type, chain, staleDataTimeInMinutes });
 
@@ -33,7 +33,7 @@ const checkOrderExecution = ({ uniqueId, orders }) => {
                 ordersToExecute.push(order);
             }   
         }
-        if(!getCache({ uniqueId, key: id })) {
+        if(!getCache({ uniqueId, key: id }) || ttl === 0){
             setCache({ uniqueId, key: id, value: true, ttl });
         }
     }
@@ -43,5 +43,3 @@ const checkOrderExecution = ({ uniqueId, orders }) => {
 }
 
 module.exports = { checkOrderExecution };
-
-
