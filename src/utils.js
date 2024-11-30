@@ -22,6 +22,7 @@ const logError = ({uniqueId, message, error}) => {
 }
 
 const setCache = ({ uniqueId, key, value, ttl}) => {
+    log({uniqueId, message: `Setting cache for key: ${key} with ttl ${ttl}s`, colour: 'grey'});
     cache.set(key, value, ttl);
 }
 

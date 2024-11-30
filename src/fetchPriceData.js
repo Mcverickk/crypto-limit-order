@@ -63,7 +63,7 @@ const formatAndCachePriceData = ({uniqueId, poolData}) => {
         } = poolDataResponse;
 
         if(contract_address === undefined || network_id === undefined || base_asset_symbol === undefined || quote_asset_symbol === undefined || base_asset_contract_address === undefined || quote_asset_contract_address === undefined || quote === undefined || dex_slug === undefined){
-            log({uniqueId, message: `Missing data for pool:`, data: poolDataResponse, colour: 'red'});
+            log({uniqueId, message: `Missing data for pool:`, data: poolDataResponse, colour: 'brightRed'});
             continue;
         }
 

@@ -8,10 +8,10 @@ const getPriceDataTTL = ({ uniqueId, name, currentPrice, triggerPrice, type, cha
         (type.toUpperCase() === "SELL" && percentChangeNeeded < 0)
     ) {
         log({ uniqueId, message: `${name}@${chain}: Limit price reached for trigger price ${triggerPrice}`, colour: 'bgBrightGreen' });
-        return { ttl: 0, limitPriceReached : true };
+        return { ttl: 2, limitPriceReached : true };
     } else {
         if(staleDataTimeInMinutes > 5){
-            log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}% for ${type}`, colour: 'red' });
+            log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}% for ${type}`, colour: 'brightRed' });
         } else {
             log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}% for ${type}` });
         }

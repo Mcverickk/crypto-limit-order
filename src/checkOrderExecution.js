@@ -11,7 +11,7 @@ const checkOrderExecution = ({ uniqueId, orders }) => {
         const poolData = getCache({ uniqueId, key: `${poolAddress}:${chain}` });
         if( !poolData ) {
             log({ uniqueId, message: `No cached pool data found for ${poolAddress}:${chain}`, colour: 'bgGrey' });
-            ttl = 0;
+            ttl = 2;
         } else {
             const { dex, lastUpdated } = poolData;
 
@@ -33,7 +33,7 @@ const checkOrderExecution = ({ uniqueId, orders }) => {
                 ordersToExecute.push(order);
             }   
         }
-        if(!getCache({ uniqueId, key: id }) || ttl === 0){
+        if(!getCache({ uniqueId, key: id }) || ttl === 2){
             setCache({ uniqueId, key: id, value: true, ttl });
         }
     }
