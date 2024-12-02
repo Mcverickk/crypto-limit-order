@@ -1,45 +1,48 @@
 # Crypto Limit Order
 
-This project is a simple implementation of a limit order system for cryptocurrency trading.
+## Project Overview
+This project is a crypto limit order application that allows users to place buy and sell orders for cryptocurrencies at specified prices. The application ensures that orders are executed only when the market price meets the specified limit price.
 
-## Features
-
-- Place limit buy and sell orders
-- Cancel existing orders
-- View order book
-- Match orders based on price and time priority
-
-## Installation
-
-1. Clone the repository:
-    ```sh
-    git clone https://github.com/yourusername/crypto-limit-order.git
+## Logic Implementation
+1. **Order Placement:**
+    - Users can place buy or sell orders with a specified limit price.
     ```
-2. Navigate to the project directory:
-    ```sh
-    cd crypto-limit-order
+    curl --location 'http://localhost:3000/limit-order/create' \
+        --header 'Content-Type: application/json' \
+        --data '{
+        "chain": "polygon",
+        "triggerPrice": 3650,
+        "type": "BUY",
+        "walletAddress": "0xD43ABDA398A684b25595b5460A8040005d69d32d",
+        "fromTokenData": {
+            "symbol": "WETH",
+            "decimals": 18,
+            "address": "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619"
+        },
+        "toTokenData": {
+            "symbol": "USDC",
+            "decimals": 6,
+            "address": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
+        }
+        }
+        '
     ```
-3. Install dependencies:
-    ```sh
-    npm install
+
+2. **Order Matching:**
+    - The application fetches the active orders from database.
+    - It computes the pool addresses for the orders.
+    - It fetches the pool data for all the uniques pool addresses and caches it.
+    - It then checks the order for execution. If the order is not to be executed, it calculates the order cache time for which the price data can be stale for that order.
+    - It caches the order with its particular cache time.
+
+3. **Order Execution:**
+    - When the execution conditions are met, the order transaction is then simulated and sent to the blockchain.
+
+4. **User Interface:**
+    - A simple web interface allows users to place, view and cancel their orders.
+
+5. **View Orders:**
+    - To view all the orders for an address
     ```
-
-## Usage
-
-1. Start the application:
-    ```sh
-    npm start
+    curl --location 'http://localhost:3000/limit-order/address/chiragagarwal.eth'
     ```
-2. Access the application at `http://localhost:3000`.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request.
-
-## License
-
-This project is licensed under the MIT License.
-
-## Contact
-
-For any inquiries, please contact [chiragagarwal2001@gmail.com].
