@@ -2,12 +2,13 @@ const { computePoolAddress } = require('@uniswap/v3-sdk');
 const { Pair } = require('@uniswap/v2-sdk');
 const  { Token } = require('@uniswap/sdk-core');
 const Config = require('../config/index.js');
-const { getCache, log } = require('./utils.js');
+const { getCache, log, postRequest, logError } = require('./utils.js');
 
 const getPoolAddressesWithExpiredTTL = ({ uniqueId, orders }) => {
     const expiredTTLPoolAddresses = [];
 
-    for(const order of orders){
+    for(let i = 0; i < orders.length; i++){
+        const order = orders[i];
         const { id, fromTokenData, toTokenData, chain } = order;
         const poolAddress = getUniswapV3PoolAddress({ uniqueId, token0: fromTokenData, token1: toTokenData, fee: 3000, chain });
         order.poolAddress = poolAddress;
@@ -43,4 +44,27 @@ const getUniswapV2PoolAddress = ({token0, token1, chain}) => {
     return pairAddress.toLowerCase();
 }
 
-module.exports = { getPoolAddressesWithExpiredTTL };
+const updateLimitOrder = async ({ uniqueId, id, status, dex, txnHash }) => {
+
+    const body = {
+        id,
+        status,
+        dex: dex,
+        txnHash,
+    };
+
+    const { response, error } = await postRequest({
+        uniqueId,
+        url: Config.HASURA_UPDATE_ORDER_URL,
+        reqBody: body
+    });
+
+    if(error || !response?.update_LimitOrder_by_pk){
+        logError({ uniqueId, message: `Error updating order for ${id}`, error });
+        return { error: 'Error updating order' };
+    }
+
+    return { response };
+}
+
+module.exports = { getPoolAddressesWithExpiredTTL, updateLimitOrder };

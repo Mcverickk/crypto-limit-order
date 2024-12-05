@@ -48,7 +48,25 @@ const getChainFromCMCNetworkId = (id) => {
     return CMC_NETWORK_DETAILS.find((network) => network.id.toString() === id).name.toLowerCase();
 }
 
+const getInfuraRPCUrl = (chain) => {
+    if(chain === "ethereum"){
+        return `https://mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
+    } else {
+        return `https://${chain.toLowerCase()}-mainnet.infura.io/v3/${process.env.INFURA_API_KEY}`;
+    }
+}
+
+const getSwapContractAddress = (chain) => {
+    switch(chain.toLowerCase()){
+        case "polygon":
+            return "0x4256cCE607E24344d38609861c037815E2626B66";
+        case "base":
+            return "0x50766859cA7566a2E61F1b5507331cf345b062a9";
+        default:
+            return null;
+    }
+}
 
 
 
-module.exports = { getChainId, getCoinMarketCapNetworkId, getChainFromCMCNetworkId, SUPPORTED_CHAINS };
+module.exports = { getChainId, getCoinMarketCapNetworkId, getChainFromCMCNetworkId, SUPPORTED_CHAINS, getInfuraRPCUrl, getSwapContractAddress };

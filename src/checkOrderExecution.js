@@ -4,8 +4,9 @@ const { getCache, setCache, log } = require("./utils");
 
 const checkOrderExecution = ({ uniqueId, orders }) => {
     const ordersToExecute = [];
-
-    for( const order of orders ) {
+ 
+    for(let i = 0; i < orders.length; i++){
+        const order = orders[i];
         const { id, poolAddress, chain, fromTokenData, toTokenData, triggerPrice, type } = order;
         let ttl;
         const poolData = getCache({ uniqueId, key: `${poolAddress}:${chain}` });

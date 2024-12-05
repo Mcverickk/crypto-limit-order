@@ -46,3 +46,6 @@ This project is a crypto limit order application that allows users to place buy 
     ```
     curl --location 'http://localhost:3000/limit-order/address/chiragagarwal.eth'
     ```
+6. **Deployments**
+    - Polygon - 0x4256cCE607E24344d38609861c037815E2626B66
+    - Base - 0x50766859cA7566a2E61F1b5507331cf345b062a9

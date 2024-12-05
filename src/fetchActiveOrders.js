@@ -19,7 +19,6 @@ const fetchActiveOrdersFromHasura = async ({ uniqueId }) => {
     const { response, error } = await getRequest({uniqueId, url: Config.HASURA_ACTIVE_ORDERS_URL});
     if(error || !response){
         logError({ uniqueId, message: "Error fetching active orders from Hasura", error });
-        throw new Error("Error fetching active orders from Hasura");
     }
     setCache({uniqueId, key: "orders", value: response?.LimitOrder, ttl: Config.ORDER_CACHE_TIME_IN_SECONDS});
     log({ uniqueId, message: `Fetched and cached ${response?.LimitOrder?.length} active orders`, colour: 'bgCyan' });
