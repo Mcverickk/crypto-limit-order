@@ -25,7 +25,7 @@ app.listen(Config.PORT, () => {
 
 cron.schedule(`*/${Config.CRON_JOB_FREQ_IN_SEC} * * * * *`, async () => {
     const uniqueId = Math.random().toString(36).substring(2, 10);
-    log({uniqueId: '\n' + uniqueId, message: new Date() + " Cron job triggered", colour:"bgRed"});
+    log({uniqueId: '\n' + uniqueId, message: new Date() + " Cron job triggered", colour:"bgBrightYellow"});
     triggerOrderCheck({uniqueId});
 })
 
