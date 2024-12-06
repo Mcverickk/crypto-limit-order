@@ -1,19 +1,16 @@
 const { log } = require("../src/utils");
 
-const getPriceDataTTL = ({ uniqueId, name, currentPrice, triggerPrice, type, chain, staleDataTimeInMinutes}) => {
+const getPriceDataTTL = ({ uniqueId, name, currentPrice, triggerPrice, chain, staleDataTimeInMinutes}) => {
     const percentChangeNeeded = (triggerPrice - currentPrice) * 100 / currentPrice;
     
-    if (
-        (type.toUpperCase() === "BUY" && percentChangeNeeded > 0) ||
-        (type.toUpperCase() === "SELL" && percentChangeNeeded < 0)
-    ) {
+    if (percentChangeNeeded < 0) {
         log({ uniqueId, message: `${name}@${chain}: Limit price reached for trigger price ${triggerPrice}`, colour: 'bgBrightGreen' });
         return { ttl: 2, limitPriceReached : true };
     } else {
         if(staleDataTimeInMinutes > 5){
-            log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}% for ${type}`, colour: 'brightRed' });
+            log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}%`, colour: 'brightRed' });
         } else {
-            log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}% for ${type}` });
+            log({ uniqueId, message: `${name}@${chain}: Price - ${currentPrice}(${staleDataTimeInMinutes}mins old), Change needed - ${percentChangeNeeded}%` });
         }
     }
     

@@ -24,8 +24,8 @@ const getPoolAddressesWithExpiredTTL = ({ uniqueId, orders }) => {
 
 const getUniswapV3PoolAddress = ({ uniqueId, token0, token1, fee, chain}) => {
     const chainId = Config.getChainId('base');
-    const tokenA = new Token(chainId, token0.address, token0.decimals);
-    const tokenB = new Token(chainId, token1.address, token1.decimals);
+    const tokenA = new Token(chainId, Config.checkCoinAddress({address: token0.address, chain}), token0.decimals);
+    const tokenB = new Token(chainId, Config.checkCoinAddress({address: token1.address, chain}), token1.decimals);
 
     const currentPoolAddress = computePoolAddress({
       factoryAddress: Config.getUniswapFactoryAddress({uniqueId, chain, version: 'v3'}),
@@ -38,8 +38,8 @@ const getUniswapV3PoolAddress = ({ uniqueId, token0, token1, fee, chain}) => {
 
 const getUniswapV2PoolAddress = ({token0, token1, chain}) => {
     const chainId = Config.getChainId(chain);
-    const tokenA = new Token(chainId, token0.address, token0.decimals);
-    const tokenB = new Token(chainId, token1.address, token1.decimals);
+    const tokenA = new Token(chainId, Config.checkCoinAddress({address: token0.address, chain}), token0.decimals);
+    const tokenB = new Token(chainId, Config.checkCoinAddress({address: token1.address, chain}), token1.decimals);
     const pairAddress = Pair.getAddress(tokenA, tokenB);
     return pairAddress.toLowerCase();
 }

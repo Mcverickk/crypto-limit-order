@@ -7,7 +7,7 @@ const checkOrderExecution = ({ uniqueId, orders }) => {
  
     for(let i = 0; i < orders.length; i++){
         const order = orders[i];
-        const { id, poolAddress, chain, fromTokenData, toTokenData, triggerPrice, type } = order;
+        const { id, poolAddress, chain, fromTokenData, toTokenData, triggerPrice } = order;
         let ttl;
         const poolData = getCache({ uniqueId, key: `${poolAddress}:${chain}` });
         if( !poolData ) {
@@ -16,16 +16,24 @@ const checkOrderExecution = ({ uniqueId, orders }) => {
         } else {
             const { dex, lastUpdated } = poolData;
 
+            const poolFromToken = Config.checkCoinAddress({address: fromTokenData.address.toLowerCase(), chain});
+            const poolToToken = Config.checkCoinAddress({address: toTokenData.address.toLowerCase(), chain});
+
             const priceData = poolData.quote.find(data => (
-                data.fromToken === fromTokenData.address.toLowerCase() && 
-                data.toToken === toTokenData.address.toLowerCase()
+                data.fromToken ===  poolFromToken && 
+                data.toToken === poolToToken
             ));
+
+            if(!priceData){
+                log({ uniqueId, message: `No price data found for ${fromTokenData.address} to ${toTokenData.address} on ${chain}`, colour: 'bgGrey' });
+                ttl = 2;
+            }
     
             const { price, name } = priceData;
 
             const staleDataTimeInMinutes = Math.floor((Date.now() - new Date(lastUpdated)) / (60000));
             
-            const { ttl: priceDataTTL, limitPriceReached } = Config.getPriceDataTTL({ uniqueId, name, currentPrice: price, triggerPrice, type, chain, staleDataTimeInMinutes });
+            const { ttl: priceDataTTL, limitPriceReached } = Config.getPriceDataTTL({ uniqueId, name, currentPrice: price, triggerPrice, chain, staleDataTimeInMinutes });
 
             ttl = priceDataTTL;
 

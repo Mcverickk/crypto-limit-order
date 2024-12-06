@@ -1,7 +1,7 @@
 const Config = require("../config");
 const { updateLimitOrder } = require("./cryptoUtils");
 const { fetchActiveOrdersFromHasura } = require("./fetchActiveOrders");
-const { log, setCache } = require("./utils");
+const { log, setCache, getCache } = require("./utils");
 const { ethers } = require('ethers');
 const SwapContractABI = require('../constants/SwapContractABI.json');
 
@@ -13,9 +13,9 @@ const executeOrders = async ({uniqueId, orders}) => {
 
     for(let i = 0; i < orders.length; i++){
         const order = orders[i];
-        const { id, triggerPrice, type, executionData, amount, chain, walletAddress, fromTokenData, toTokenData } = order;
-        const { dex, name } = executionData;
-        log({ uniqueId, message: `Executing ${type} order ${id} for ${name} at price ${triggerPrice}` });
+        const { id, triggerPrice, executionData, amount, chain, walletAddress, fromTokenData, toTokenData } = order;
+        const { dex, name, price } = executionData;
+        log({ uniqueId, message: `Executing order ${id} for ${name} at price ${price}` });
 
         let txnHash = getCache({ uniqueId, key: id + '-txnHash' });
         if(!txnHash){
@@ -41,7 +41,9 @@ const executeOrders = async ({uniqueId, orders}) => {
     }
     
     log({ uniqueId, message: `Executed orders: [${executedOrders.join(',')}]`, colour: 'brightGreen' });
-    await fetchActiveOrdersFromHasura({ uniqueId });
+    if(executedOrders.length > 0){
+        await fetchActiveOrdersFromHasura({ uniqueId });
+    }
 }
 
 
@@ -53,8 +55,16 @@ const executeSwapContract = async ({uniqueId, chain, fromTokenData, toTokenData,
     
         const amountIn = BigInt(Math.floor(amount * 10**fromTokenData.decimals));
         const amountOutMin = BigInt(Math.floor(amount * triggerPrice * 10**toTokenData.decimals));
-    
-        const tx = await contract.swapTokenToToken(fromTokenData.address, toTokenData.address, 3000, amountIn, amountOutMin , walletAddress);
+
+        let tx;
+
+        if(fromTokenData.address === Config.ZERO_ADDRESS){
+            tx = await contract.swapCoinToToken(toTokenData.address, 3000, amountIn, amountOutMin, walletAddress);
+        } else if(toTokenData.address === Config.ZERO_ADDRESS){
+            tx = await contract.swapTokenToCoin(fromTokenData.address, 3000, amountIn, amountOutMin, walletAddress);
+        } else {
+            tx = await contract.swapTokenToToken(fromTokenData.address, toTokenData.address, 3000, amountIn, amountOutMin , walletAddress);
+        }
     
         const txnReceipt = await tx.wait();
 

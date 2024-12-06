@@ -67,6 +67,26 @@ const getSwapContractAddress = (chain) => {
     }
 }
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
+const checkCoinAddress = ({address, chain}) => {
+    if(address !== ZERO_ADDRESS){
+        return address;
+    } else {
+        switch(chain.toLowerCase()){
+            case "ethereum":
+                return "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2".toLowerCase();
+            case "polygon":
+                return "0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270".toLowerCase();
+            case "base":
+                return "0x4200000000000000000000000000000000000006".toLowerCase();
+            default:
+                return null;
+        }
+    }
+}
 
 
-module.exports = { getChainId, getCoinMarketCapNetworkId, getChainFromCMCNetworkId, SUPPORTED_CHAINS, getInfuraRPCUrl, getSwapContractAddress };
+
+
+module.exports = { getChainId, getCoinMarketCapNetworkId, getChainFromCMCNetworkId, SUPPORTED_CHAINS, getInfuraRPCUrl, getSwapContractAddress, checkCoinAddress, ZERO_ADDRESS };
